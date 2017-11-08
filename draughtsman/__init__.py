@@ -14,12 +14,18 @@ typedef enum {
 } drafter_format;
 
 typedef struct {
+    bool requireBlueprintName;
+} drafter_parse_options;
+
+typedef struct {
     bool sourcemap;
     drafter_format format;
-} drafter_options;
+} drafter_serialize_options;
 
 int drafter_parse_blueprint_to(const char* source,
-                               char** out, const drafter_options options);
+                               char** out,
+                               const drafter_parse_options parse_opts,
+                               const drafter_serialize_options serialize_opts);
 ''')
 
 drafter = ffi.dlopen('drafter')
@@ -28,8 +34,9 @@ drafter = ffi.dlopen('drafter')
 def parse(blueprint: str) -> ParseResult:
     source = ffi.new('char []', blueprint.encode('utf-8'))
     output = ffi.new('char **')
-    options = ffi.new("drafter_options *", [False, 1])
-    result = drafter.drafter_parse_blueprint_to(source, output, options[0])
+    serialize_options = ffi.new("drafter_serialize_options *", [False, 1])
+    parse_options = ffi.new("drafter_parse_options *", [False])
+    result = drafter.drafter_parse_blueprint_to(source, output, parse_options[0], serialize_options[0])
 
     if result != 0:
         raise Exception('Unknown Error')
